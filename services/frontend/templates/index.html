@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zero Trust Frontend</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; background: #f4f7fb; }
+    button { padding: 0.75rem 1.2rem; margin-top: 1rem; cursor: pointer; }
+    pre { background: #fff; border: 1px solid #d7dae0; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Zero Trust Prototype</h1>
+  <p>This frontend service demonstrates the application zone calling the internal API.</p>
+  <button id="fetchBtn">Fetch internal API data</button>
+  <pre id="result">Click the button to request data from <code>/internal-data</code>.</pre>
+
+  <script>
+    document.getElementById('fetchBtn').addEventListener('click', async () => {
+      const result = document.getElementById('result');
+      result.textContent = 'Loading...';
+      try {
+        const response = await fetch('/internal-data');
+        const data = await response.json();
+        result.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        result.textContent = 'Request failed: ' + err;
+      }
+    });
+  </script>
+</body>
+</html>
