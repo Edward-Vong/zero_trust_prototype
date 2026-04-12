@@ -1,5 +1,5 @@
 # Zero-Trust Micro-segmentation Prototype
-## by Group 1 (Vicki Liang, Owen Skys, Edward Vong
+## by Group 1 (Vicki Liang, Owen Semersky, Edward Vong)
 
 I would like to gently request y'all to work in your own branch for each container juuust in case of something :)
 
