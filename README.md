@@ -6,7 +6,7 @@ I would like to gently request y'all to work in your own branch for each contain
 ### Basic structure of project
 Each folder should be its own container! In theory there should be no merge conflicts.
 
-'''
+```
 zero-trust-lab/
 ├── app/
 │   ├── frontend/
@@ -16,4 +16,4 @@ zero-trust-lab/
 │   ├── pomerium/
 │   ├── step-ca/
 │   └── wireguard/
-'''
+```
