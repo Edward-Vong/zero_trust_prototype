@@ -1,0 +1,10 @@
+# step-ca sensitive material
+infrastructure/step-ca/secrets/
+infrastructure/step-ca/db/
+infrastructure/step-ca/issued/
+infrastructure/step-ca/password.txt
+
+# private keys
+*.key
+*.p12
+*.pfx
