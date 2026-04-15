@@ -33,6 +33,20 @@ services:
     networks:
       - data_net
 
+  step-ca:
+    image: smallstep/step-ca:latest
+    container_name: zt-step-ca
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./infrastructure/step-ca:/home/step
+    environment:
+      - STEPPATH=/home/step
+    command: step-ca /home/step/config/ca.json --password-file /home/step/secrets/password
+    networks:
+      - app_net
+    restart: unless-stopped
+
 volumes:
   postgres_data:
 
