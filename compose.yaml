@@ -9,22 +9,34 @@ services:
   api:
     build: ./app/api
     container_name: zt-api
+    environment:
+      DATABASE_HOST: backend
+      DATABASE_PORT: 5432
+      DATABASE_NAME: appdb
+      DATABASE_USER: appuser
+      DATABASE_PASSWORD: apppass
     networks:
       - app_net
+      - data_net
     depends_on:
       - backend
 
   backend:
-    build: ./app/backend
+    image: postgres:16
     container_name: zt-backend
-    networks:
-      - app_net
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
     volumes:
-      - backend_data:/app/data
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - data_net
 
 volumes:
-  backend_data:
+  postgres_data:
 
 networks:
   edge_net:
   app_net:
+  data_net:
