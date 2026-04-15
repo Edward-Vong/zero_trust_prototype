@@ -1,0 +1,6 @@
+{
+	"ca-url": "https://localhost:9000",
+	"ca-config": "/home/step/config/ca.json",
+	"fingerprint": "1a5f52e14af208385b73456eac7208001b5f41b3de3c552524ef16331d32518e",
+	"root": "/home/step/certs/root_ca.crt"
+}
