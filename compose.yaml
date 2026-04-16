@@ -58,10 +58,10 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
       - SERVERURL=???
-      - PEERS=???
+      - PEERS=??? # Actual machine addresses?
       - PEERDNS=auto
       - INTERNAL_SUBNET=???
-      - ALLOWEDIPS = ???
+      - ALLOWEDIPS = ??? # Subnet IP addresses
     volumes:
       - ./infrastrcture/wireguard:/config
       - /lib/modules:/lib/modules
