@@ -2,6 +2,8 @@ services:
   frontend:
     build: ./app/frontend
     container_name: zt-frontend
+    ports:
+      - "80:80"
     networks:
       - edge_net
       - app_net
@@ -9,6 +11,8 @@ services:
   api:
     build: ./app/api
     container_name: zt-api
+    ports:
+      - "4000:4000"
     networks:
       - app_net
     depends_on:
@@ -17,6 +21,8 @@ services:
   backend:
     build: ./app/backend
     container_name: zt-backend
+    ports:
+      - "5000:5000"
     networks:
       - app_net
     volumes:
