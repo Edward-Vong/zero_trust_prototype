@@ -47,27 +47,28 @@ services:
       - app_net
     restart: unless-stopped
 
-  wg-easy:
-    image: ghcr.io/wg-easy/wg-easy
-    container_name: wg-easy
-      - LANG=en
-      - WG_HOST=???
-      - PASSWORD_HASH=???
-      - PORT=51821 # For the web UI
-      - WG_PORT=51820 # For the actual Wireguard VPN
-      # Allowed IPs?
-    volumes:
-      - ./infrastructure/wireguard:/config
-    ports:
-      - "51820:51820/udp"
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wireguard
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - SERVERURL=???
+      - PEERS=???
+      - PEERDNS=auto
+      - INTERNAL_SUBNET=???
+      - ALLOWEDIPS = ???
+    volumes:
+      - ./infrastrcture/wireguard:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - 51820:51820/udp
     sysctls:
-      - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
-    networks:
-      - app_net
     restart: unless-stopped
 
 volumes:
