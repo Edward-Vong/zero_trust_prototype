@@ -28,10 +28,24 @@
       document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
     }
 
+    async function fetchJson(response) {
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return response.json();
+      }
+      const text = await response.text();
+      throw new Error(`Expected JSON response, got ${response.status} ${response.statusText}: ${text}`);
+    }
+
     document.getElementById('fetchData').addEventListener('click', async () => {
       try {
         const response = await fetch('/api/data');
-        const data = await response.json();
+        if (!response.ok) {
+          const errorText = await response.text();
+          showResult({ error: `Request failed ${response.status}: ${response.statusText}`, details: errorText });
+          return;
+        }
+        const data = await fetchJson(response);
         showResult(data);
       } catch (error) {
         showResult({ error: error.message });
@@ -51,7 +65,12 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ value })
         });
-        const data = await response.json();
+        if (!response.ok) {
+          const errorText = await response.text();
+          showResult({ error: `Request failed ${response.status}: ${response.statusText}`, details: errorText });
+          return;
+        }
+        const data = await fetchJson(response);
         showResult(data);
       } catch (error) {
         showResult({ error: error.message });
