@@ -5,8 +5,10 @@ services:
     ports:
       - "80:80"
     networks:
-      - edge_net
-      - app_net
+      edge_net:
+        ipv4_address: 172.20.0.10
+      app_net:
+        ipv4_address: 172.21.0.10
 
   api:
     build: ./app/api
@@ -14,7 +16,8 @@ services:
     ports:
       - "4000:4000"
     networks:
-      - app_net
+      app_net:
+        ipv4_address: 172.21.0.11
     depends_on:
       - backend
 
@@ -24,7 +27,8 @@ services:
     ports:
       - "5000:5000"
     networks:
-      - app_net
+      app_net:
+        ipv4_address: 172.21.0.12
     volumes:
       - backend_data:/app/data
 
@@ -39,7 +43,8 @@ services:
       - STEPPATH=/home/step
     command: step-ca /home/step/config/ca.json --password-file /home/step/secrets/password
     networks:
-      - app_net
+      app_net:
+        ipv4_address: 172.21.0.13
     restart: unless-stopped
 
 volumes:
@@ -47,4 +52,12 @@ volumes:
 
 networks:
   edge_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
   app_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
