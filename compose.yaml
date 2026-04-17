@@ -57,11 +57,11 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - SERVERURL=???
-      - PEERS=??? # Actual machine addresses?
+      - SERVERURL=auto # Not sure if we would have a public IP/domain for containers
+      - PEERS=frontend,api,backend
       - PEERDNS=auto
-      - INTERNAL_SUBNET=???
-      - ALLOWEDIPS = ??? # Subnet IP addresses
+      - INTERNAL_SUBNET=10.13.13.0/24 # The default internal subnet for WG
+      - ALLOWEDIPS =172.20.0.0/16,172.21.0.0/16,10.13.13.0/24 # Traffic can slow between these 3 subnets
     volumes:
       - ./infrastrcture/wireguard:/config
       - /lib/modules:/lib/modules
@@ -69,10 +69,7 @@ services:
       - 51820:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    networks:
-      - edge_net
-      - app_net
-      - data_net
+      - net.ipv4.ip_forward=1
     restart: unless-stopped
 
 volumes:
