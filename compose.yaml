@@ -2,36 +2,35 @@ services:
   frontend:
     build: ./app/frontend
     container_name: zt-frontend
+    ports:
+      - "80:80"
     networks:
-      - edge_net
-      - app_net
+      edge_net:
+        ipv4_address: 172.20.0.10
+      app_net:
+        ipv4_address: 172.21.0.10
 
   api:
     build: ./app/api
     container_name: zt-api
-    environment:
-      DATABASE_HOST: backend
-      DATABASE_PORT: 5432
-      DATABASE_NAME: appdb
-      DATABASE_USER: appuser
-      DATABASE_PASSWORD: apppass
+    ports:
+      - "4000:4000"
     networks:
-      - app_net
-      - data_net
+      app_net:
+        ipv4_address: 172.21.0.11
     depends_on:
       - backend
 
   backend:
-    image: postgres:16
+    build: ./app/backend
     container_name: zt-backend
-    environment:
-      POSTGRES_DB: appdb
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: apppass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5000:5000"
     networks:
-      - data_net
+      app_net:
+        ipv4_address: 172.21.0.12
+    volumes:
+      - backend_data:/app/data
 
   step-ca:
     image: smallstep/step-ca:latest
@@ -44,13 +43,21 @@ services:
       - STEPPATH=/home/step
     command: step-ca /home/step/config/ca.json --password-file /home/step/secrets/password
     networks:
-      - app_net
+      app_net:
+        ipv4_address: 172.21.0.13
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  backend_data:
 
 networks:
   edge_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
   app_net:
-  data_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

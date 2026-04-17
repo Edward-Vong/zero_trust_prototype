@@ -15,5 +15,25 @@ zero-trust-lab/
 ├── infrastructure/
 │   ├── pomerium/
 │   ├── step-ca/
-│   └── wireguard/
+ │   └── wireguard/
 ```
+
+## Run locally
+
+From the project root:
+
+```bash
+docker-compose up --build
+```
+
+Then open the UI at:
+
+- `http://localhost`
+
+If you want to access services directly:
+
+- API: `http://localhost:4000`
+- Backend: `http://localhost:5000`
+- Step-CA UI: `http://localhost:9000`
+
+Use `docker-compose logs -f` to watch service output while testing.
