@@ -61,7 +61,7 @@ services:
       - PEERS=frontend,api,backend
       - PEERDNS=auto
       - INTERNAL_SUBNET=10.13.13.0/24 # The default internal subnet for WG
-      - ALLOWEDIPS =172.20.0.0/16,172.21.0.0/16,10.13.13.0/24 # Traffic can slow between these 3 subnets
+      - ALLOWEDIPS =172.20.0.0/16,172.21.0.0/16,10.13.13.0/24 # Traffic can flow between these 3 subnets
     volumes:
       - ./infrastrcture/wireguard:/config
       - /lib/modules:/lib/modules
