@@ -47,10 +47,33 @@ services:
       - app_net
     restart: unless-stopped
 
+  pomerium:
+    image: pomerium/pomerium:latest
+    ports:
+      - 443:443
+    restart: always
+    environment:
+      POMERIUM_ZERO_TOKEN: ${POMERIUM_ZERO_TOKEN}
+      XDG_CACHE_HOME: /var/cache
+    volumes:
+      - pomerium-cache:/var/cache
+    networks:
+      main:
+        aliases:
+          - verify.able-snail-8528.pomerium.app
+  verify:
+    image: pomerium/verify:latest
+    networks:
+      main:
+        aliases:
+          - verify
+
 volumes:
   postgres_data:
+  pomerium-cache:
 
 networks:
+  main: {}
   edge_net:
   app_net:
   data_net:
