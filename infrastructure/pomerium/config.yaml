@@ -1,0 +1,25 @@
+# TLS configuration
+certificate_file: /pomerium/certs/tls.crt
+certificate_key_file: /pomerium/certs/tls.key
+
+# routes
+routes:
+  # for the frontend
+  - from: https://app.zt.local
+    to: http://zt-frontend:80
+    pass_identity_headers: true
+    policy:
+      - allow:
+          or:
+            - domain:
+                is: sjsu.edu
+  # for the api
+  - from: https://api.zt.local
+    to: http://zt-api:4000
+    pass_identity_headers: true
+    policy:
+      - allow:
+          or:
+            - domain:
+                is: sjsu.edu
+      
