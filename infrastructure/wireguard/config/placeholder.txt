@@ -1,1 +1,0 @@
-Placeholder so wireguard config folder can be made.
