@@ -7,3 +7,7 @@ infrastructure/step-ca/password.txt
 *.key
 *.p12
 *.pfx
+
+# env
+.env
+.env.*

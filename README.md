@@ -15,25 +15,71 @@ zero-trust-lab/
 ├── infrastructure/
 │   ├── pomerium/
 │   ├── step-ca/
- │   └── wireguard/
+│   └── wireguard/
 ```
 
 ## Run locally
 
-From the project root:
+#### Edit your host file:
+
+Windows:
+```
+C:\Windows\System32\drivers\etc\hosts
+```
+
+Linux:
+```
+sudo nano /etc/hosts
+```
+
+macOS:
+```
+sudo nano /etc/hosts
+```
+
+#### Add hosts:
+```
+127.0.0.1 app.zt.local
+127.0.0.1 api.zt.local
+```
+
+#### Flush DNS cache:
+
+Windows (new connections should take effect immediately but if it doesn't):
+```
+ipconfig /flushdns
+```
+
+Linux (Ubuntu 18.04 and later):
+```
+sudo resolvectl flush-caches
+```
+
+Linux (older systems using `ncsd`):
+```
+sudo systemctl restart nscd
+```
+
+macOS:
+```
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
+```
+
+#### From the project root:
 
 ```bash
 docker-compose up --build
 ```
 
-Then open the UI at:
+#### Then open the UI at:
 
-- `http://localhost`
+- `https://app.zt.local`
 
-If you want to access services directly:
+#### If you want to access services directly:
 
-- API: `http://localhost:4000`
-- Backend: `http://localhost:5000`
-- Step-CA UI: `http://localhost:9000`
+- API: `http://app.zt.local:4000`
+- Backend: `http://app.zt.local:5000`
+- Step-CA UI: `http://app.zt.local:9000`
 
 Use `docker-compose logs -f` to watch service output while testing.

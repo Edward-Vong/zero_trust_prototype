@@ -2,33 +2,33 @@ services:
   frontend:
     build: ./app/frontend
     container_name: zt-frontend
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     networks:
       edge_net:
-        ipv4_address: 172.20.0.10
-      app_net:
         ipv4_address: 172.21.0.10
+      app_net:
+        ipv4_address: 172.22.0.10
 
   api:
     build: ./app/api
     container_name: zt-api
-    ports:
-      - "4000:4000"
+    expose:
+      - "4000"
     networks:
       app_net:
-        ipv4_address: 172.21.0.11
+        ipv4_address: 172.22.0.11
     depends_on:
       - backend
 
   backend:
     build: ./app/backend
     container_name: zt-backend
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     networks:
       app_net:
-        ipv4_address: 172.21.0.12
+        ipv4_address: 172.22.0.12
     volumes:
       - backend_data:/app/data
 
@@ -44,8 +44,35 @@ services:
     command: step-ca /home/step/config/ca.json --password-file /home/step/secrets/password
     networks:
       app_net:
-        ipv4_address: 172.21.0.13
+        ipv4_address: 172.22.0.13
     restart: unless-stopped
+
+  pomerium:
+    image: pomerium/pomerium:latest
+    container_name: zt-pomerium
+    ports:
+      - '443:443'
+      - '80:80'
+    volumes:
+      - ./infrastructure/pomerium/config.yaml:/pomerium/config.yaml:ro
+      - ./infrastructure/step-ca/issued/pomerium:/pomerium/certs:ro
+      - pomerium-data:/data/
+    environment:
+      - POMERIUM_SHARED_SECRET=${POMERIUM_SHARED_SECRET}
+      - POMERIUM_COOKIE_SECRET=${POMERIUM_COOKIE_SECRET}
+    command: --config /pomerium/config.yaml
+    networks:
+      edge_net:
+        ipv4_address: 172.21.0.20
+      app_net:
+        ipv4_address: 172.22.0.20
+    depends_on:
+      - frontend
+      - api
+    restart: unless-stopped
+
+  verify:
+    image: pomerium/verify:latest
 
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
@@ -57,11 +84,11 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - SERVERURL=???
-      - PEERS=??? # Actual machine addresses?
+      - SERVERURL=auto # Not sure if we would have a public IP/domain for containers
+      - PEERS=frontend,api,backend
       - PEERDNS=auto
-      - INTERNAL_SUBNET=???
-      - ALLOWEDIPS = ??? # Subnet IP addresses
+      - INTERNAL_SUBNET=10.13.13.0/24 # The default internal subnet for WG
+      - ALLOWEDIPS=172.21.0.0/16,172.22.0.0/16,10.13.13.0/24 # Traffic can flow between these 3 subnets
     volumes:
       - ./infrastrcture/wireguard:/config
       - /lib/modules:/lib/modules
@@ -69,23 +96,21 @@ services:
       - 51820:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    networks:
-      - edge_net
-      - app_net
-      - data_net
+      - net.ipv4.ip_forward=1
     restart: unless-stopped
 
 volumes:
   backend_data:
+  pomerium-data:
 
 networks:
   edge_net:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.21.0.0/16
   app_net:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.21.0.0/16
+        - subnet: 172.22.0.0/16
