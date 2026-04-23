@@ -1,4 +1,13 @@
 services:
+  attacker:
+    image: alpine:latest
+    container_name: zt-attacker
+    # HTTP access, port probing, TLS testing, advanced proof
+    command: sh -c "apk add --no-cache curl bind-tools openssl netcat-openbsd tcpdump && sleep infinity"
+    networks:
+      edge_net:
+        ipv4_address: 172.21.0.20 # outside of the edge_net subnet
+
   frontend:
     build: ./app/frontend
     container_name: zt-frontend
@@ -88,7 +97,7 @@ services:
       - PEERS=frontend,api,backend
       - PEERDNS=auto
       - INTERNAL_SUBNET=10.13.13.0/24 # The default internal subnet for WG
-      - ALLOWEDIPS=172.21.0.0/16,172.22.0.0/16,10.13.13.0/24 # Traffic can flow between these 3 subnets
+      - ALLOWEDIPS=10.13.13.0/24 # Traffic can flow between the tunnel
     volumes:
       - ./infrastructure/wireguard:/config
       - /lib/modules:/lib/modules
