@@ -131,3 +131,28 @@ docker exec -it wireguard wg show
 curl https://10.13.13.3:<PORT>
 ```
 > Proves encrypted peer-to-peer communication through the WireGuard tunnel
+
+#### Test 3 - Confirm allowed IP route usage
+```
+# From inside the Frontend container
+ping 172.31.11.11
+```
+> Proves the defined route Frontend --> API allows traffic  
+> Should display reply packets from the API
+
+
+#### Test 4 - Confirm blocking of guarded IP routes
+```
+# From inside the Frontend container
+ping 172.31.12.11
+```
+> Proves undefined routes do not work (Frontend --> Backend is not allowed)  
+> Should see packets being sent, but no replies received
+
+> #### Test 5 - Confirm unguarded routes are still accessible
+```
+# From inside the Frontend container
+ping 8.8.8.8
+```
+> Outbound traffic should still be allowed, not blocked in WG  
+> Should see returning replies from public IP 8.8.8.8
