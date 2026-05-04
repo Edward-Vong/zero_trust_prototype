@@ -64,7 +64,7 @@ services:
       - '80:80'
     volumes:
       - ./infrastructure/pomerium/config.yaml:/pomerium/config.yaml:ro
-      - ./infrastructure/step-ca/issued/pomerium:/pomerium/certs:ro
+      - ./infrastructure/pomerium/certs:/pomerium/certs:ro
       - pomerium-data:/data/
     environment:
       - POMERIUM_SHARED_SECRET=${POMERIUM_SHARED_SECRET}
