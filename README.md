@@ -68,6 +68,10 @@ sudo killall -HUP mDNSResponder
 
 #### From the project root:
 
+On a fresh clone, `step-ca` auto-generates `infrastructure/step-ca/secrets/password` as a plaintext random secret and initializes missing PKI material.
+
+If CA key material exists but the password file is missing, startup now regenerates CA material to match the newly generated password so local development can bootstrap cleanly on new machines.
+
 ```bash
 docker compose up -d --build
 ```

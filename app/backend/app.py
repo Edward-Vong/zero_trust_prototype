@@ -79,8 +79,11 @@ def data():
 
 if __name__ == '__main__':
     CERT_DIR = '/app/certs'
-    with open(f'{CERT_DIR}/key_pass.txt', 'r', encoding='utf-8') as f:
-        key_password = f.read().strip()
+    key_password = None
+    key_password_file = os.environ.get('KEY_PASSWORD_FILE', f'{CERT_DIR}/key_pass.txt')
+    if os.path.isfile(key_password_file):
+        with open(key_password_file, 'r', encoding='utf-8') as f:
+            key_password = f.read().strip() or None
 
     server_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     server_ctx.load_cert_chain(

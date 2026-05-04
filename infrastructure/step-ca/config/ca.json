@@ -7,7 +7,9 @@
 	"insecureAddress": "",
 	"dnsNames": [
 		"localhost",
-		"step-ca"
+		"step-ca",
+		"app.zt.local",
+		"api.zt.local"
 	],
 	"logger": {
 		"format": "text"
@@ -25,13 +27,13 @@
 				"key": {
 					"use": "sig",
 					"kty": "EC",
-					"kid": "ZBLVysGk77PjM716QeEgvLLMQJAzewb6ycZtEM_tstQ",
+					"kid": "CelsB5VJNX4rZAbUwqsr_maMY2YQXasFwVs_NdJAG3k",
 					"crv": "P-256",
 					"alg": "ES256",
-					"x": "L3ihDTxGTAhaCZftnJtumsS3DRiGRpp2jcx5O0x9yM4",
-					"y": "1HvcaXPE_K03xmASk0KV8XG2EH2DGEG3JgUMgMfPsnU"
+					"x": "CnypJ075BXFOc_4_qGbYZZSKCbd9TDgSGWNrzr9hC_o",
+					"y": "BdkX7uz65xlN0g2FAgSvZ3hqY_IT6c5b4VWyFwZ-jlk"
 				},
-				"encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjYwMDAwMCwicDJzIjoicnhGRHUzcUJZRmdQX0RieDkyYnJ1USJ9.SzGVwbt_mu55cGRV8T4SJMk1USXPzqxDu-n0ITUsBeF3g15AW1rGFg._yblG4nqPc6toXGs.sEON4-6rvaxo9Fw0yJ8ShcNppvoSfYJ2bn1PeCplWDx5ni1YA2ENCepC7mW7FvryexTROAm1MejKx9C4TE3XSe1WpcTsGmvVqqbN9Uajc6C9gGPc0WLwkxEkyxEdEKlv5KdKfHIOtiwmrqHh5rj8SoUSaFsCgeNgoc5wnllpXy8439fHRWMwFIa14-6X7YHZ2fy8ar_DoloUShgF8x1gMVb965x4X0hceHWRlEO-Ff_lnlqEkz2MzfPRQs78z_o7mCRwbVl6OW2uNB7hQM6cFumcVCEiBxDQfteRMtgqgWShH1LCuLGbZ3khwgEkt-UVK-f02tgtAwUgB1ny8To.iSxzzcqLNpyjVTIzM0tZQg"
+				"encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjYwMDAwMCwicDJzIjoiQ2laQnlJaktvYnRsNkNGd0dpMjQ4USJ9.JhD-O6q-nUJGE6v5mJRMUTfWiqaaCtxAM06oFnWHMFVjyZJ-22Di4w.13Di9O8KTpV-oEXF.8qBsfSK4l9ELVEGF3Z9e2uZmfmBzFXeUPLed7lUh1YizuRSJoLgI2YWmu6GkKwnct3w5NeR3t9EfzLzixxm_aeNBv2zgIJlNaV5gKXRFw2QnwSYjhCfdRB-uKuxQHstaf_KLmGpLb4Xo4LSac-L8LadyVN7PfM5KZFPSRg_7yylCSqNthYpbpiv9pfm0SU8FAmyD_fNiUDAJGZg-xvhy7vDrheAcqE19mBOzScyUA5jeAgNPPajq6ZWsV7uJ7gseQifTscTyDNNKlzAgLBmA1Va5Y2pEfBHeQ4Ofwj7PUPdGHAzYXRNDy6fd-L-NnLqyPNW8Cux4-K6bH7NEd6E.SIi57Vv5LBNANU08I2VYWg"
 			}
 		]
 	},

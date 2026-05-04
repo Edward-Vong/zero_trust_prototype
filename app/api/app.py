@@ -1,5 +1,6 @@
 import ssl
 import json
+import os
 from flask import Flask, jsonify, request
 import requests
 from requests.adapters import HTTPAdapter
@@ -9,12 +10,15 @@ app = Flask(__name__)
 
 BACKEND_URL = 'https://backend.local:5000'
 CERT_DIR = '/app/certs'
-KEY_PASSWORD_FILE = f'{CERT_DIR}/key_pass.txt'
+KEY_PASSWORD_FILE = os.environ.get('KEY_PASSWORD_FILE', f'{CERT_DIR}/key_pass.txt')
 
 
 def _key_password():
-    with open(KEY_PASSWORD_FILE, 'r', encoding='utf-8') as f:
-        return f.read().strip()
+    if os.path.isfile(KEY_PASSWORD_FILE):
+        with open(KEY_PASSWORD_FILE, 'r', encoding='utf-8') as f:
+            value = f.read().strip()
+            return value or None
+    return None
 
 
 class SSLContextAdapter(HTTPAdapter):

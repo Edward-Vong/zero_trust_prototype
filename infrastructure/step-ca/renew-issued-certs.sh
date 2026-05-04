@@ -5,9 +5,17 @@ ISSUED_DIR="$STEP_HOME/issued"
 POMERIUM_TLS_DIR="$STEP_HOME/certs/pomerium"
 CA_CERT="$STEP_HOME/certs/intermediate_ca.crt"
 CA_KEY="$STEP_HOME/secrets/intermediate_ca_key"
-CA_PASS_FILE="$STEP_HOME/secrets/password"
 NORM_PASS_FILE="$STEP_HOME/secrets/password.lf"
 NOT_AFTER="${1:-2160h}"
+
+if [ -s "$STEP_HOME/secrets/password" ]; then
+    CA_PASS_FILE="$STEP_HOME/secrets/password"
+elif [ -s "$STEP_HOME/secrets/dev@209-group1" ]; then
+    CA_PASS_FILE="$STEP_HOME/secrets/dev@209-group1"
+else
+    echo "Missing CA password source file in $STEP_HOME/secrets" >&2
+    exit 1
+fi
 
 # Normalize the mounted password file to one line without trailing CR/LF.
 tr -d '\r\n' < "$CA_PASS_FILE" > "$NORM_PASS_FILE"

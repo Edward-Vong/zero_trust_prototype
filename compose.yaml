@@ -16,7 +16,12 @@ services:
       - "80"
     volumes:
       - ./infrastructure/step-ca/issued/frontend:/etc/nginx/certs/frontend:ro
-      - ./infrastructure/step-ca/certs/ca_chain.crt:/etc/nginx/certs/ca_chain.crt:ro
+      - type: bind
+        source: ./infrastructure/step-ca/certs/ca_chain.crt
+        target: /etc/nginx/certs/ca_chain.crt
+        read_only: true
+        bind:
+          create_host_path: false
     networks:
       frontend_private_net: {}
       frontend_api_net:
@@ -35,8 +40,12 @@ services:
       - "4000"
     volumes:
       - ./infrastructure/step-ca/issued/api:/app/certs/api:ro
-      - ./infrastructure/step-ca/certs/ca_chain.crt:/app/certs/ca_chain.crt:ro
-      - ./infrastructure/step-ca/secrets/password:/app/certs/key_pass.txt:ro
+      - type: bind
+        source: ./infrastructure/step-ca/certs/ca_chain.crt
+        target: /app/certs/ca_chain.crt
+        read_only: true
+        bind:
+          create_host_path: false
     networks:
       api_private_net: {}
       frontend_api_net:
@@ -58,8 +67,12 @@ services:
       - "5000"
     volumes:
       - ./infrastructure/step-ca/issued/backend:/app/certs/backend:ro
-      - ./infrastructure/step-ca/certs/ca_chain.crt:/app/certs/ca_chain.crt:ro
-      - ./infrastructure/step-ca/secrets/password:/app/certs/key_pass.txt:ro
+      - type: bind
+        source: ./infrastructure/step-ca/certs/ca_chain.crt
+        target: /app/certs/ca_chain.crt
+        read_only: true
+        bind:
+          create_host_path: false
       - backend_data:/app/data
     networks:
       backend_private_net: {}
@@ -80,42 +93,12 @@ services:
       - ./infrastructure/step-ca:/home/step
     environment:
       - STEPPATH=/home/step
+      - DOCKER_STEPCA_INIT_NAME=Zero Trust Prototype CA
+      - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,step-ca,app.zt.local,api.zt.local
+      - DOCKER_STEPCA_INIT_PROVISIONER_NAME=admin
     command:
       - sh
-      - -ec
-      - |
-        tr -d '\r\n' < /home/step/secrets/password > /home/step/secrets/password.lf
-        mkdir -p /home/step/issued/frontend /home/step/issued/api /home/step/issued/backend /home/step/certs/pomerium
-
-        rm -f /home/step/issued/frontend/frontend.crt /home/step/issued/frontend/frontend.key
-        step certificate create frontend /home/step/issued/frontend/frontend.crt /home/step/issued/frontend/frontend.key \
-          --san frontend --san frontend.local \
-          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
-          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
-
-        rm -f /home/step/issued/api/api.crt /home/step/issued/api/api.key
-        step certificate create api /home/step/issued/api/api.crt /home/step/issued/api/api.key \
-          --san api --san api.local \
-          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
-          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
-
-        rm -f /home/step/issued/backend/backend.crt /home/step/issued/backend/backend.key
-        step certificate create backend /home/step/issued/backend/backend.crt /home/step/issued/backend/backend.key \
-          --san backend --san backend.local \
-          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
-          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
-
-        rm -f /home/step/certs/pomerium/tls.crt /home/step/certs/pomerium/tls.key
-        step certificate create app.zt.local /home/step/certs/pomerium/tls.crt /home/step/certs/pomerium/tls.key \
-          --san app.zt.local --san api.zt.local --san localhost \
-          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
-          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
-
-        test -s /home/step/certs/pomerium/tls.crt
-        test -s /home/step/certs/pomerium/tls.key
-
-        cat /home/step/certs/intermediate_ca.crt /home/step/certs/root_ca.crt > /home/step/certs/ca_chain.crt
-        exec step-ca /home/step/config/ca.json --password-file /home/step/secrets/password.lf
+      - /home/step/init-step-ca.sh
     healthcheck:
       test:
         - "CMD-SHELL"
