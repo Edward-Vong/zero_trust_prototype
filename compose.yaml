@@ -98,7 +98,11 @@ services:
       - DOCKER_STEPCA_INIT_PROVISIONER_NAME=admin
     command:
       - sh
-      - /home/step/init-step-ca.sh
+      - -ec
+      - |
+        tr -d '\r' < /home/step/init-step-ca.sh > /tmp/init-step-ca.sh
+        chmod +x /tmp/init-step-ca.sh
+        exec /tmp/init-step-ca.sh
     healthcheck:
       test:
         - "CMD-SHELL"
