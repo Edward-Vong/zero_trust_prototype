@@ -13,9 +13,9 @@ routes:
           or:
             - domain:
                 is: sjsu.edu
-  # for the api
+  # for the api — routed through frontend nginx which applies mTLS to api
   - from: https://api.zt.local
-    to: http://zt-api:4000
+    to: http://zt-frontend:80/api
     pass_identity_headers: true
     policy:
       - allow:

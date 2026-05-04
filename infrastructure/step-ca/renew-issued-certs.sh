@@ -1,0 +1,61 @@
+docker compose exec step-ca sh /home/step/renew-issued-certs.sh#!/bin/sh
+set -eu
+
+STEP_HOME="/home/step"
+ISSUED_DIR="$STEP_HOME/issued"
+CA_CERT="$STEP_HOME/certs/intermediate_ca.crt"
+CA_KEY="$STEP_HOME/secrets/intermediate_ca_key"
+CA_PASS_FILE="$STEP_HOME/secrets/password"
+NORM_PASS_FILE="$STEP_HOME/secrets/password.lf"
+NOT_AFTER="${1:-2160h}"
+
+# Normalize the mounted password file to one line without trailing CR/LF.
+tr -d '\r\n' < "$CA_PASS_FILE" > "$NORM_PASS_FILE"
+
+issue_cert() {
+    name="$1"
+    sans="$2"
+    out_dir="$ISSUED_DIR/$name"
+    crt="$out_dir/$name.crt"
+    key="$out_dir/$name.key"
+
+    mkdir -p "$out_dir"
+
+    # Always overwrite old artifacts so mounted services pick up fresh certs.
+    rm -f "$crt" "$key"
+
+    step certificate create "$name" "$crt" "$key" \
+        --san "$name" \
+        --san "$sans" \
+        --ca "$CA_CERT" \
+        --ca-key "$CA_KEY" \
+        --ca-password-file "$NORM_PASS_FILE" \
+        --no-password \
+        --insecure \
+        --not-after "$NOT_AFTER"
+
+    test -s "$crt"
+    test -s "$key"
+}
+
+# Clean up accidental outputs in /home/step from prior manual commands.
+rm -f \
+    "$STEP_HOME/frontend.crt" "$STEP_HOME/frontend.key" \
+    "$STEP_HOME/api.crt" "$STEP_HOME/api.key" \
+    "$STEP_HOME/backend.crt" "$STEP_HOME/backend.key"
+
+issue_cert frontend frontend.local
+issue_cert api api.local
+issue_cert backend backend.local
+
+# Rebuild the CA chain bundle (intermediate + root) for TLS verification.
+cat "$STEP_HOME/certs/intermediate_ca.crt" "$STEP_HOME/certs/root_ca.crt" \
+    > "$STEP_HOME/certs/ca_chain.crt"
+
+echo "Reissued certs in:"
+echo "  $ISSUED_DIR/frontend/frontend.crt"
+echo "  $ISSUED_DIR/api/api.crt"
+echo "  $ISSUED_DIR/backend/backend.crt"
+echo "Chain bundle: $STEP_HOME/certs/ca_chain.crt"
+
+rm -f "$NORM_PASS_FILE"
