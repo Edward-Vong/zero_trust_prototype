@@ -106,7 +106,7 @@ services:
     healthcheck:
       test:
         - "CMD-SHELL"
-        - "test -s /home/step/issued/frontend/frontend.crt && test -s /home/step/issued/api/api.crt && test -s /home/step/issued/backend/backend.crt && test -s /home/step/certs/pomerium/tls.crt && test -s /home/step/certs/pomerium/tls.key && step ca health --ca-url https://localhost:9000 --root /home/step/certs/root_ca.crt >/dev/null 2>&1"
+        - "test -s /home/step/issued/frontend/frontend.crt && test -s /home/step/issued/api/api.crt && test -s /home/step/issued/backend/backend.crt && test -s /home/step/issued/pomerium/tls.crt && test -s /home/step/issued/pomerium/tls.key && step ca health --ca-url https://localhost:9000 --root /home/step/certs/root_ca.crt >/dev/null 2>&1"
       interval: 5s
       timeout: 5s
       retries: 10
@@ -124,7 +124,7 @@ services:
       - '80:80'
     volumes:
       - ./infrastructure/pomerium/config.yaml:/pomerium/config.yaml:ro
-      - ./infrastructure/step-ca/certs/pomerium:/pomerium/certs:ro
+      - ./infrastructure/step-ca/issued/pomerium:/pomerium/certs:ro
       - pomerium-data:/data/
     environment:
       - POMERIUM_SHARED_SECRET=${POMERIUM_SHARED_SECRET}

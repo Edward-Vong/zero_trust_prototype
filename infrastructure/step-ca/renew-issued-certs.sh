@@ -2,7 +2,7 @@
 
 STEP_HOME="/home/step"
 ISSUED_DIR="$STEP_HOME/issued"
-POMERIUM_TLS_DIR="$STEP_HOME/certs/pomerium"
+POMERIUM_TLS_DIR="$ISSUED_DIR/pomerium"
 CA_CERT="$STEP_HOME/certs/intermediate_ca.crt"
 CA_KEY="$STEP_HOME/secrets/intermediate_ca_key"
 NORM_PASS_FILE="$STEP_HOME/secrets/password.lf"
@@ -56,7 +56,7 @@ issue_cert frontend frontend.local
 issue_cert api api.local
 issue_cert backend backend.local
 
-# Keep Pomerium's edge TLS key outside issued/ to avoid bind-mount write issues.
+# Keep Pomerium's edge TLS cert in issued/pomerium with other issued identities.
 mkdir -p "$POMERIUM_TLS_DIR"
 rm -f "$POMERIUM_TLS_DIR/tls.crt" "$POMERIUM_TLS_DIR/tls.key"
 step certificate create app.zt.local \
