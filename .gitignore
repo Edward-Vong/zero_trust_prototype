@@ -11,3 +11,11 @@ infrastructure/step-ca/password.txt
 # env
 .env
 .env.*
+infrastructure/wireguard/peer_api/peer_api.conf
+infrastructure/wireguard/peer_api/privatekey-peer_api
+infrastructure/wireguard/peer_backend/peer_backend.conf
+infrastructure/wireguard/peer_backend/privatekey-peer_backend
+infrastructure/wireguard/peer_frontend/peer_frontend.conf
+infrastructure/wireguard/peer_frontend/privatekey-peer_frontend
+infrastructure/wireguard/server/privatekey-server
+infrastructure/wireguard/wg_confs/wg0.conf
