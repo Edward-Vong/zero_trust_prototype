@@ -1,6 +1,6 @@
 # TLS configuration
-certificate_file: /pomerium/issued/pomerium/tls.crt
-certificate_key_file: /pomerium/issued/pomerium/tls.key
+certificate_file: /pomerium/certs/tls.crt
+certificate_key_file: /pomerium/certs/tls.key
 
 # routes
 routes:

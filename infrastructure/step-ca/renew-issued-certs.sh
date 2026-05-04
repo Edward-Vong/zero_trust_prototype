@@ -2,6 +2,7 @@
 
 STEP_HOME="/home/step"
 ISSUED_DIR="$STEP_HOME/issued"
+POMERIUM_TLS_DIR="$STEP_HOME/certs/pomerium"
 CA_CERT="$STEP_HOME/certs/intermediate_ca.crt"
 CA_KEY="$STEP_HOME/secrets/intermediate_ca_key"
 CA_PASS_FILE="$STEP_HOME/secrets/password"
@@ -47,11 +48,11 @@ issue_cert frontend frontend.local
 issue_cert api api.local
 issue_cert backend backend.local
 
-# Pomerium TLS cert issued into issued/pomerium alongside other leaf certs.
-mkdir -p "$ISSUED_DIR/pomerium"
-rm -f "$ISSUED_DIR/pomerium/tls.crt" "$ISSUED_DIR/pomerium/tls.key"
+# Keep Pomerium's edge TLS key outside issued/ to avoid bind-mount write issues.
+mkdir -p "$POMERIUM_TLS_DIR"
+rm -f "$POMERIUM_TLS_DIR/tls.crt" "$POMERIUM_TLS_DIR/tls.key"
 step certificate create app.zt.local \
-    "$ISSUED_DIR/pomerium/tls.crt" "$ISSUED_DIR/pomerium/tls.key" \
+    "$POMERIUM_TLS_DIR/tls.crt" "$POMERIUM_TLS_DIR/tls.key" \
     --san app.zt.local \
     --san api.zt.local \
     --san localhost \
@@ -70,4 +71,5 @@ echo "Reissued certs in:"
 echo "  $ISSUED_DIR/frontend/frontend.crt"
 echo "  $ISSUED_DIR/api/api.crt"
 echo "  $ISSUED_DIR/backend/backend.crt"
+echo "  $POMERIUM_TLS_DIR/tls.crt"
 echo "Chain bundle: $STEP_HOME/certs/ca_chain.crt"

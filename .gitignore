@@ -27,4 +27,5 @@ scripts/fix-and-verify.ps1
 infrastructure/step-ca/issued/api/api.crt
 infrastructure/step-ca/issued/backend/backend.crt
 infrastructure/step-ca/issued/frontend/frontend.crt
-infrastructure/step-ca/issued/pomerium/tls.crt
+infrastructure/step-ca/certs/pomerium/tls.crt
+infrastructure/step-ca/certs/pomerium/tls.key
