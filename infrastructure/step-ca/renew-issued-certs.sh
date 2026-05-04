@@ -1,4 +1,4 @@
-docker compose exec step-ca sh /home/step/renew-issued-certs.sh#!/bin/sh
+#!/bin/sh
 set -eu
 
 STEP_HOME="/home/step"
@@ -47,6 +47,21 @@ rm -f \
 issue_cert frontend frontend.local
 issue_cert api api.local
 issue_cert backend backend.local
+
+# Pomerium TLS cert — issued into issued/pomerium/ alongside other leaf certs.
+mkdir -p "$ISSUED_DIR/pomerium"
+rm -f "$ISSUED_DIR/pomerium/tls.crt" "$ISSUED_DIR/pomerium/tls.key"
+step certificate create app.zt.local \
+    "$ISSUED_DIR/pomerium/tls.crt" "$ISSUED_DIR/pomerium/tls.key" \
+    --san app.zt.local \
+    --san api.zt.local \
+    --san localhost \
+    --ca "$CA_CERT" \
+    --ca-key "$CA_KEY" \
+    --ca-password-file "$NORM_PASS_FILE" \
+    --no-password \
+    --insecure \
+    --not-after "$NOT_AFTER"
 
 # Rebuild the CA chain bundle (intermediate + root) for TLS verification.
 cat "$STEP_HOME/certs/intermediate_ca.crt" "$STEP_HOME/certs/root_ca.crt" \

@@ -23,7 +23,10 @@ services:
         ipv4_address: 172.31.11.10
       pomerium_frontend_net: {}
     depends_on:
-      - api
+      api:
+        condition: service_started
+      step-ca:
+        condition: service_healthy
 
   api:
     build: ./app/api
@@ -43,7 +46,10 @@ services:
       api_backend_net:
         ipv4_address: 172.31.12.10
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+      step-ca:
+        condition: service_healthy
 
   backend:
     build: ./app/backend
@@ -61,6 +67,9 @@ services:
         ipv4_address: 172.31.12.11
         aliases:
           - backend.local
+    depends_on:
+      step-ca:
+        condition: service_healthy
 
   step-ca:
     image: smallstep/step-ca:latest
@@ -71,7 +80,15 @@ services:
       - ./infrastructure/step-ca:/home/step
     environment:
       - STEPPATH=/home/step
-    command: step-ca /home/step/config/ca.json --password-file /home/step/secrets/password
+    command: >-
+      sh -c "sh /home/step/renew-issued-certs.sh &&
+      step-ca /home/step/config/ca.json --password-file /home/step/secrets/password"
+    healthcheck:
+      test: ["CMD", "step", "ca", "health", "--ca-url", "https://localhost:9000", "--root", "/home/step/certs/root_ca.crt"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       control_net:
         ipv4_address: 172.31.30.13
@@ -85,7 +102,7 @@ services:
       - '80:80'
     volumes:
       - ./infrastructure/pomerium/config.yaml:/pomerium/config.yaml:ro
-      - ./infrastructure/pomerium/certs:/pomerium/certs:ro
+      - ./infrastructure/step-ca/issued/pomerium:/pomerium/certs:ro
       - pomerium-data:/data/
     environment:
       - POMERIUM_SHARED_SECRET=${POMERIUM_SHARED_SECRET}
