@@ -23,6 +23,11 @@ generate_password() {
 
 mkdir -p "$SECRETS_DIR" "$CERTS_DIR" "$ISSUED_DIR/frontend" "$ISSUED_DIR/api" "$ISSUED_DIR/backend" "$POMERIUM_TLS_DIR"
 
+# Clean up legacy template directory from older local setups.
+if [ -d "$STEP_HOME/templates" ]; then
+    rm -rf "$STEP_HOME/templates"
+fi
+
 HAS_EXISTING_PKI=1
 for required in "$CA_CONFIG" "$INTERMEDIATE_CERT" "$ROOT_CERT" "$INTERMEDIATE_KEY"
 do
@@ -110,6 +115,10 @@ step certificate create app.zt.local "$POMERIUM_TLS_DIR/tls.crt" "$POMERIUM_TLS_
     --insecure \
     --not-after 2160h
 
+if [ -d "$CERTS_DIR/ca_chain.crt" ]; then
+    rm -rf "$CERTS_DIR/ca_chain.crt"
+fi
+rm -f "$CERTS_DIR/ca_chain.crt"
 cat "$INTERMEDIATE_CERT" "$ROOT_CERT" > "$CERTS_DIR/ca_chain.crt"
 
 exec step-ca "$CA_CONFIG" --password-file "$NORM_PASSWORD_FILE"

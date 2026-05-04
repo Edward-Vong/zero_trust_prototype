@@ -8,12 +8,9 @@ CA_KEY="$STEP_HOME/secrets/intermediate_ca_key"
 NORM_PASS_FILE="$STEP_HOME/secrets/password.lf"
 NOT_AFTER="${1:-2160h}"
 
-if [ -s "$STEP_HOME/secrets/password" ]; then
-    CA_PASS_FILE="$STEP_HOME/secrets/password"
-elif [ -s "$STEP_HOME/secrets/dev@209-group1" ]; then
-    CA_PASS_FILE="$STEP_HOME/secrets/dev@209-group1"
-else
-    echo "Missing CA password source file in $STEP_HOME/secrets" >&2
+CA_PASS_FILE="$STEP_HOME/secrets/password"
+if [ ! -s "$CA_PASS_FILE" ]; then
+    echo "Missing CA password file: $CA_PASS_FILE" >&2
     exit 1
 fi
 
@@ -72,6 +69,10 @@ step certificate create app.zt.local \
     --not-after "$NOT_AFTER"
 
 # Rebuild the CA chain bundle (intermediate + root) for TLS verification.
+if [ -d "$STEP_HOME/certs/ca_chain.crt" ]; then
+    rm -rf "$STEP_HOME/certs/ca_chain.crt"
+fi
+rm -f "$STEP_HOME/certs/ca_chain.crt"
 cat "$STEP_HOME/certs/intermediate_ca.crt" "$STEP_HOME/certs/root_ca.crt" \
     > "$STEP_HOME/certs/ca_chain.crt"
 
