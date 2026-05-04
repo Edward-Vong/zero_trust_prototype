@@ -80,15 +80,50 @@ services:
       - ./infrastructure/step-ca:/home/step
     environment:
       - STEPPATH=/home/step
-    command: >-
-      sh -c "sh /home/step/renew-issued-certs.sh &&
-      step-ca /home/step/config/ca.json --password-file /home/step/secrets/password"
+    command:
+      - sh
+      - -ec
+      - |
+        tr -d '\r\n' < /home/step/secrets/password > /home/step/secrets/password.lf
+        mkdir -p /home/step/issued/frontend /home/step/issued/api /home/step/issued/backend /home/step/issued/pomerium
+
+        rm -f /home/step/issued/frontend/frontend.crt /home/step/issued/frontend/frontend.key
+        step certificate create frontend /home/step/issued/frontend/frontend.crt /home/step/issued/frontend/frontend.key \
+          --san frontend --san frontend.local \
+          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
+          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
+
+        rm -f /home/step/issued/api/api.crt /home/step/issued/api/api.key
+        step certificate create api /home/step/issued/api/api.crt /home/step/issued/api/api.key \
+          --san api --san api.local \
+          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
+          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
+
+        rm -f /home/step/issued/backend/backend.crt /home/step/issued/backend/backend.key
+        step certificate create backend /home/step/issued/backend/backend.crt /home/step/issued/backend/backend.key \
+          --san backend --san backend.local \
+          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
+          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
+
+        rm -f /home/step/issued/pomerium/tls.crt /home/step/issued/pomerium/tls.key
+        step certificate create app.zt.local /home/step/issued/pomerium/tls.crt /home/step/issued/pomerium/tls.key \
+          --san app.zt.local --san api.zt.local --san localhost \
+          --ca /home/step/certs/intermediate_ca.crt --ca-key /home/step/secrets/intermediate_ca_key \
+          --ca-password-file /home/step/secrets/password.lf --no-password --insecure --not-after 2160h
+
+        test -s /home/step/issued/pomerium/tls.crt
+        test -s /home/step/issued/pomerium/tls.key
+
+        cat /home/step/certs/intermediate_ca.crt /home/step/certs/root_ca.crt > /home/step/certs/ca_chain.crt
+        exec step-ca /home/step/config/ca.json --password-file /home/step/secrets/password.lf
     healthcheck:
-      test: ["CMD", "step", "ca", "health", "--ca-url", "https://localhost:9000", "--root", "/home/step/certs/root_ca.crt"]
+      test:
+        - "CMD-SHELL"
+        - "test -s /home/step/issued/frontend/frontend.crt && test -s /home/step/issued/api/api.crt && test -s /home/step/issued/backend/backend.crt && test -s /home/step/issued/pomerium/tls.crt && test -s /home/step/issued/pomerium/tls.key && step ca health --ca-url https://localhost:9000 --root /home/step/certs/root_ca.crt >/dev/null 2>&1"
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 10s
+      start_period: 40s
     networks:
       control_net:
         ipv4_address: 172.31.30.13
@@ -102,7 +137,7 @@ services:
       - '80:80'
     volumes:
       - ./infrastructure/pomerium/config.yaml:/pomerium/config.yaml:ro
-      - ./infrastructure/step-ca/issued/pomerium:/pomerium/certs:ro
+      - ./infrastructure/step-ca/issued:/pomerium/issued:ro
       - pomerium-data:/data/
     environment:
       - POMERIUM_SHARED_SECRET=${POMERIUM_SHARED_SECRET}
@@ -126,6 +161,8 @@ services:
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
     container_name: wireguard
+    profiles:
+      - wireguard
     cap_add:
       - NET_ADMIN
       - SYS_MODULE

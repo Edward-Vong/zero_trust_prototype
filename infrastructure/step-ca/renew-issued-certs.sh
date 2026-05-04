@@ -1,5 +1,4 @@
 #!/bin/sh
-set -eu
 
 STEP_HOME="/home/step"
 ISSUED_DIR="$STEP_HOME/issued"
@@ -48,7 +47,7 @@ issue_cert frontend frontend.local
 issue_cert api api.local
 issue_cert backend backend.local
 
-# Pomerium TLS cert — issued into issued/pomerium/ alongside other leaf certs.
+# Pomerium TLS cert issued into issued/pomerium alongside other leaf certs.
 mkdir -p "$ISSUED_DIR/pomerium"
 rm -f "$ISSUED_DIR/pomerium/tls.crt" "$ISSUED_DIR/pomerium/tls.key"
 step certificate create app.zt.local \
@@ -72,5 +71,3 @@ echo "  $ISSUED_DIR/frontend/frontend.crt"
 echo "  $ISSUED_DIR/api/api.crt"
 echo "  $ISSUED_DIR/backend/backend.crt"
 echo "Chain bundle: $STEP_HOME/certs/ca_chain.crt"
-
-rm -f "$NORM_PASS_FILE"

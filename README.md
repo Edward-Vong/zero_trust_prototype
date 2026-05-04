@@ -69,7 +69,15 @@ sudo killall -HUP mDNSResponder
 #### From the project root:
 
 ```bash
-docker-compose up --build
+docker compose up -d --build
+```
+
+This starts the core stack (`step-ca`, `backend`, `api`, `frontend`, `pomerium`, `attacker`) on Windows, Linux, and macOS.
+
+WireGuard is optional and Linux-oriented. Start it only when needed:
+
+```bash
+docker compose --profile wireguard up -d --build
 ```
 
 #### Then open the UI at:
@@ -82,4 +90,4 @@ docker-compose up --build
 - Backend: `http://app.zt.local:5000`
 - Step-CA UI: `http://app.zt.local:9000`
 
-Use `docker-compose logs -f` to watch service output while testing.
+Use `docker compose logs -f` to watch service output while testing.
