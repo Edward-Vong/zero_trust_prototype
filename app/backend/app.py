@@ -1,5 +1,7 @@
 import os
 import sqlite3
+import ssl
+import json
 from flask import Flask, jsonify, request
 
 DB_PATH = os.environ.get('BACKEND_DB_PATH', 'data/data.db')
@@ -37,8 +39,26 @@ def health():
 @app.route('/data', methods=['GET', 'POST'])
 def data():
     if request.method == 'POST':
-        payload = request.get_json() or {}
-        value = payload.get('value')
+        payload = request.get_json(silent=True)
+        if payload is None:
+            raw_body = request.get_data(as_text=True).strip()
+            if raw_body:
+                try:
+                    payload = json.loads(raw_body)
+                except json.JSONDecodeError:
+                    return jsonify({"error": "Invalid JSON body"}), 400
+            else:
+                payload = {}
+
+        if isinstance(payload, str):
+            value = payload
+        else:
+            value = payload.get('value')
+
+        if not value:
+            # Optional fallback for form-encoded callers.
+            value = request.form.get('value')
+
         if not value:
             return jsonify({"error": "Missing value parameter"}), 400
 
@@ -58,4 +78,21 @@ def data():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    CERT_DIR = '/app/certs'
+    with open(f'{CERT_DIR}/key_pass.txt', 'r', encoding='utf-8') as f:
+        key_password = f.read().strip()
+
+    server_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    server_ctx.load_cert_chain(
+        certfile=f'{CERT_DIR}/backend/backend.crt',
+        keyfile=f'{CERT_DIR}/backend/backend.key',
+        password=key_password,
+    )
+    server_ctx.load_verify_locations(cafile=f'{CERT_DIR}/ca_chain.crt')
+    server_ctx.verify_mode = ssl.CERT_REQUIRED
+
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        ssl_context=server_ctx,
+    )

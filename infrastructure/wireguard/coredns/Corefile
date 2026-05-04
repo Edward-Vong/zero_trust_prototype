@@ -2,5 +2,12 @@
     loop
     errors
     health
+    hosts {
+        10.13.13.1 wireguard-server
+        10.13.13.2 peer_frontend
+        10.13.13.3 peer_api
+        10.13.13.4 peer_backend
+        fallthrough
+    }
     forward . /etc/resolv.conf
 }

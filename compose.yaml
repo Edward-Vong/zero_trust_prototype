@@ -6,40 +6,70 @@ services:
     command: sh -c "apk add --no-cache curl bind-tools openssl netcat-openbsd tcpdump && sleep infinity"
     networks:
       edge_net:
-        ipv4_address: 172.21.0.20 # outside of the edge_net subnet
+        ipv4_address: 172.21.0.30
 
   frontend:
     build: ./app/frontend
     container_name: zt-frontend
+    command: nginx -g 'daemon off;'
     expose:
       - "80"
+    volumes:
+      - ./infrastructure/step-ca/issued/frontend:/etc/nginx/certs/frontend:ro
+      - ./infrastructure/step-ca/certs/ca_chain.crt:/etc/nginx/certs/ca_chain.crt:ro
     networks:
-      edge_net:
-        ipv4_address: 172.21.0.10
-      app_net:
-        ipv4_address: 172.22.0.10
+      frontend_private_net: {}
+      frontend_api_net:
+        ipv4_address: 172.31.11.10
+      pomerium_frontend_net: {}
+    depends_on:
+      api:
+        condition: service_started
+      step-ca:
+        condition: service_healthy
 
   api:
     build: ./app/api
     container_name: zt-api
     expose:
       - "4000"
+    volumes:
+      - ./infrastructure/step-ca/issued/api:/app/certs/api:ro
+      - ./infrastructure/step-ca/certs/ca_chain.crt:/app/certs/ca_chain.crt:ro
+      - ./infrastructure/step-ca/secrets/password:/app/certs/key_pass.txt:ro
     networks:
-      app_net:
-        ipv4_address: 172.22.0.11
+      api_private_net: {}
+      frontend_api_net:
+        ipv4_address: 172.31.11.11
+        aliases:
+          - api.local
+      api_backend_net:
+        ipv4_address: 172.31.12.10
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+      step-ca:
+        condition: service_healthy
 
   backend:
     build: ./app/backend
     container_name: zt-backend
     expose:
       - "5000"
-    networks:
-      app_net:
-        ipv4_address: 172.22.0.12
     volumes:
+      - ./infrastructure/step-ca/issued/backend:/app/certs/backend:ro
+      - ./infrastructure/step-ca/certs/ca_chain.crt:/app/certs/ca_chain.crt:ro
+      - ./infrastructure/step-ca/secrets/password:/app/certs/key_pass.txt:ro
       - backend_data:/app/data
+    networks:
+      backend_private_net: {}
+      api_backend_net:
+        ipv4_address: 172.31.12.11
+        aliases:
+          - backend.local
+    depends_on:
+      step-ca:
+        condition: service_healthy
 
   step-ca:
     image: smallstep/step-ca:latest
@@ -50,10 +80,18 @@ services:
       - ./infrastructure/step-ca:/home/step
     environment:
       - STEPPATH=/home/step
-    command: step-ca /home/step/config/ca.json --password-file /home/step/secrets/password
+    command: >-
+      sh -c "sh /home/step/renew-issued-certs.sh &&
+      step-ca /home/step/config/ca.json --password-file /home/step/secrets/password"
+    healthcheck:
+      test: ["CMD", "step", "ca", "health", "--ca-url", "https://localhost:9000", "--root", "/home/step/certs/root_ca.crt"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
-      app_net:
-        ipv4_address: 172.22.0.13
+      control_net:
+        ipv4_address: 172.31.30.13
     restart: unless-stopped
 
   pomerium:
@@ -73,15 +111,17 @@ services:
     networks:
       edge_net:
         ipv4_address: 172.21.0.20
-      app_net:
-        ipv4_address: 172.22.0.20
+      pomerium_frontend_net: {}
     depends_on:
       - frontend
-      - api
     restart: unless-stopped
 
   verify:
     image: pomerium/verify:latest
+    container_name: zt-verify
+    networks:
+      control_net:
+        ipv4_address: 172.31.30.14
 
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
@@ -93,11 +133,11 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - SERVERURL=auto # Not sure if we would have a public IP/domain for containers
+      - SERVERURL=auto
       - PEERS=frontend,api,backend
       - PEERDNS=auto
-      - INTERNAL_SUBNET=10.13.13.0/24 # The default internal subnet for WG
-      - ALLOWEDIPS=10.13.13.0/24 # Traffic can flow between the tunnel
+      - INTERNAL_SUBNET=10.13.13.0/24
+      - ALLOWEDIPS=10.13.13.0/24
     volumes:
       - ./infrastructure/wireguard:/config
       - /lib/modules:/lib/modules
@@ -106,6 +146,9 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv4.ip_forward=1
+    networks:
+      control_net:
+        ipv4_address: 172.31.30.2
     restart: unless-stopped
 
 volumes:
@@ -118,8 +161,38 @@ networks:
     ipam:
       config:
         - subnet: 172.21.0.0/16
-  app_net:
+  frontend_private_net:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.22.0.0/16
+        - subnet: 172.31.1.0/24
+  api_private_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.2.0/24
+  backend_private_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.3.0/24
+  frontend_api_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.11.0/24
+  api_backend_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.12.0/24
+  pomerium_frontend_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.21.0/24
+  control_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.30.0/24
